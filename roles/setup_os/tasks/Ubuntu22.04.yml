@@ -1,0 +1,22 @@
+---
+
+- name: put etc/modules-load.d/k8s.conf
+  template:
+    src: k8s.conf.j2
+    dest: /etc/modules-load.d/k8s.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: enable module
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ k8s_kernel_modules }}"
+
+- name: set sysctl
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    reload: true
+  loop: "{{ k8s_kernel_params }}"

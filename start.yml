@@ -1,0 +1,23 @@
+---
+
+- name: install kubeadm
+  hosts: k8s
+  become: yes
+  gather_facts: yes
+  tasks:
+
+    - name: setup OS
+      import_role:
+        name: setup_os
+      tags: setup_os
+    
+    - name: install containerd
+      import_role:
+        name: install_containerd
+      when: k8s_cri == 'containerd'
+      tags: install_containerd
+
+    - name: install kubeadm
+      import_role:
+        name: install_kubeadm
+      tags: install_kubeadm

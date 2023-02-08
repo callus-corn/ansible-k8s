@@ -1,0 +1,74 @@
+---
+
+- name: apt upgrade
+  apt:
+    name: '*'
+    update_cache: yes
+
+- name: install requirements
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ k8s_kubeadm_requirement_packages }}"
+
+- name: mkdir /etc/apt/keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: add kubernetes-archive-keyring.gpg
+  shell: >-
+    curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  args:
+    creates: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+
+- name: add k8s repo
+  shell: >-
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main"
+  register: k8s_repo_result
+  changed_when: false
+
+- name: add k8s repo
+  set_fact:
+    k8s_repo: "{{ k8s_repo_result.stdout }}"
+
+- name: add k8s repo
+  template:
+    src: kubernetes.list.j2
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    owner: root
+    group: root
+    mode: 0644
+
+- name: install kubeadm
+  apt:
+    name: kubeadm
+    update_cache: yes
+
+- name: install kubelet
+  apt:
+    name: kubelet
+    update_cache: yes
+
+- name: install kubectl
+  apt:
+    name: kubectl
+    update_cache: yes
+
+- name: apt-mark hols kubeadm
+  dpkg_selections:
+    name: kubeadm
+    selection: hold
+
+- name: apt-mark hols kubelet
+  dpkg_selections:
+    name: kubelet
+    selection: hold
+
+- name: apt-mark hols kubectl
+  dpkg_selections:
+    name: kubectl
+    selection: hold
