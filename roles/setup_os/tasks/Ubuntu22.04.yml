@@ -20,3 +20,7 @@
     value: "{{ item.value }}"
     reload: true
   loop: "{{ k8s_kernel_params }}"
+
+- name: disable swap
+  command: >-
+    swapoff -a

@@ -1,0 +1,4 @@
+---
+
+- name: import {{ controller_action }}.yml
+  import_tasks: "{{ controller_action }}.yml"

@@ -13,11 +13,42 @@
     
     - name: install containerd
       import_role:
-        name: install_containerd
+        name: containerd
       when: k8s_cri == 'containerd'
       tags: install_containerd
 
     - name: install kubeadm
       import_role:
-        name: install_kubeadm
+        name: kubeadm
       tags: install_kubeadm
+
+- name: setup k8s controller
+  hosts: k8s_controller
+  become: yes
+  tasks:
+
+    - name: init controller
+      import_role:
+        name: controller
+      vars:
+        controller_action: init
+      tags: init_controller
+
+    - name: install calico
+      import_role:
+        name: controller
+      vars:
+        controller_action: install_calico
+      tags: install_calico
+
+- name: setup k8s worker
+  hosts: k8s_worker
+  become: yes
+  tasks:
+
+    - name: join worker
+      import_role:
+        name: worker
+      vars:
+        worker_action: join
+      tags: join_worker

@@ -1,0 +1,27 @@
+---
+
+- name: k8s health check
+  uri:
+    url: https://api.k8s.cloud.localdomain:6443/livez
+    return_content: yes
+    validate_certs: no
+  register: k8s_health_check
+  failed_when: no
+
+- name: kubeadm init
+  command: >-
+    kubeadm init
+    --control-plane-endpoint api.k8s.cloud.localdomain
+    --cri-socket unix:///var/run/containerd/containerd.sock
+    --pod-network-cidr=172.16.0.0/16
+  when: k8s_health_check.content != 'ok'
+
+- name: k8s health check
+  uri:
+    url: https://api.k8s.cloud.localdomain:6443/livez
+    return_content: yes
+    validate_certs: no
+  register: k8s_health_check
+  until: k8s_health_check.content == 'ok'
+  retries: 30
+  delay: 10
